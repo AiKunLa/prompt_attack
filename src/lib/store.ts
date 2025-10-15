@@ -1,7 +1,20 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 
-import type { AttackTestResult, DefenseLevel } from '@/types';
+import type { AttackType, DefenseLevel } from '@/types/supabase';
+
+/**
+ * Attack Test Item
+ */
+interface AttackTestItem {
+  id: string;
+  attackType: AttackType;
+  defenseLevel: DefenseLevel;
+  inputText: string;
+  outputText: string | null;
+  isBlocked: boolean;
+  timestamp: Date;
+}
 
 /**
  * Attack Test Store
@@ -9,82 +22,48 @@ import type { AttackTestResult, DefenseLevel } from '@/types';
  */
 interface AttackTestStore {
   // Current test state
-  currentTest: {
-    input: string;
-    defenseLevel: DefenseLevel;
-    isLoading: boolean;
-    result: AttackTestResult | null;
-    error: string | null;
-  };
-
-  // Test history (client-side cache)
-  history: AttackTestResult[];
+  currentTestId: string | null;
+  tests: Record<string, AttackTestItem>;
 
   // Actions
-  setInput: (input: string) => void;
-  setDefenseLevel: (level: DefenseLevel) => void;
-  setLoading: (loading: boolean) => void;
-  setResult: (result: AttackTestResult | null) => void;
-  setError: (error: string | null) => void;
-  addToHistory: (result: AttackTestResult) => void;
-  clearHistory: () => void;
-  reset: () => void;
+  addTest: (test: AttackTestItem) => void;
+  removeTest: (id: string) => void;
+  setCurrentTest: (id: string | null) => void;
+  clearTests: () => void;
 }
 
 const initialState = {
-  currentTest: {
-    input: '',
-    defenseLevel: 'MEDIUM' as DefenseLevel,
-    isLoading: false,
-    result: null,
-    error: null,
-  },
-  history: [],
+  currentTestId: null,
+  tests: {},
 };
 
-export const useAttackTestStore = create<AttackTestStore>()(
+export const useStore = create<AttackTestStore>()(
   devtools(
     persist(
       (set) => ({
         ...initialState,
 
-        setInput: (input) =>
+        addTest: (test) =>
           set((state) => ({
-            currentTest: { ...state.currentTest, input },
+            tests: { ...state.tests, [test.id]: test },
+            currentTestId: test.id,
           })),
 
-        setDefenseLevel: (level) =>
-          set((state) => ({
-            currentTest: { ...state.currentTest, defenseLevel: level },
-          })),
+        removeTest: (id) =>
+          set((state) => {
+            const { [id]: _, ...rest } = state.tests;
+            return {
+              tests: rest,
+              currentTestId: state.currentTestId === id ? null : state.currentTestId,
+            };
+          }),
 
-        setLoading: (loading) =>
-          set((state) => ({
-            currentTest: { ...state.currentTest, isLoading: loading },
-          })),
+        setCurrentTest: (id) => set({ currentTestId: id }),
 
-        setResult: (result) =>
-          set((state) => ({
-            currentTest: { ...state.currentTest, result, error: null },
-          })),
-
-        setError: (error) =>
-          set((state) => ({
-            currentTest: { ...state.currentTest, error, result: null },
-          })),
-
-        addToHistory: (result) =>
-          set((state) => ({
-            history: [result, ...state.history].slice(0, 50), // Keep last 50
-          })),
-
-        clearHistory: () => set({ history: [] }),
-
-        reset: () => set(initialState),
+        clearTests: () => set(initialState),
       }),
       {
         name: 'attack-test-storage',
-        partialize: (state) => ({ history: state.history }),
       }
     )
   )

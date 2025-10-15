@@ -1,8 +1,15 @@
+/**
+ * 客户端 Providers
+ */
+
 'use client';
 
-import { SessionProvider } from 'next-auth/react';
+import { ReactNode } from 'react';
 
-export function Providers({ children }: { children: React.ReactNode }) {
-  return <SessionProvider>{children}</SessionProvider>;
+interface ProvidersProps {
+  children: ReactNode;
 }
 
+export function Providers({ children }: ProvidersProps) {
+  return <>{children}</>;
+}

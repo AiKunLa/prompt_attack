@@ -1,92 +1,85 @@
-import { NextAuthOptions } from 'next-auth';
-import CredentialsProvider from 'next-auth/providers/credentials';
-import GitHubProvider from 'next-auth/providers/github';
-import { PrismaAdapter } from '@next-auth/prisma-adapter';
-import bcrypt from 'bcryptjs';
+/**
+ * Supabase 认证辅助函数
+ */
 
-import { prisma } from './db';
+import { createServerClient } from './supabase';
+import type { User } from '@/types/supabase';
 
-export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
-  
-  providers: [
-    // Credentials Provider (Email/Password)
-    CredentialsProvider({
-      name: 'credentials',
-      credentials: {
-        email: { label: 'Email', type: 'email' },
-        password: { label: 'Password', type: 'password' },
-      },
-      async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          throw new Error('Invalid credentials');
-        }
+/**
+ * 获取当前登录用户（服务端）
+ */
+export async function getCurrentUser(): Promise<User | null> {
+  const supabase = await createServerClient();
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
-        });
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
 
-        if (!user || !user.password) {
-          throw new Error('Invalid credentials');
-        }
+  if (error || !user) {
+    return null;
+  }
 
-        const isPasswordValid = await bcrypt.compare(
-          credentials.password,
-          user.password
-        );
+  return user as User;
+}
 
-        if (!isPasswordValid) {
-          throw new Error('Invalid credentials');
-        }
+/**
+ * 检查用户是否已登录
+ */
+export async function isAuthenticated(): Promise<boolean> {
+  const user = await getCurrentUser();
+  return user !== null;
+}
 
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          image: user.image,
-        };
-      },
-    }),
+/**
+ * 获取用户 Session
+ */
+export async function getSession() {
+  const supabase = await createServerClient();
 
-    // GitHub OAuth Provider (Optional)
-    ...(process.env.GITHUB_ID && process.env.GITHUB_SECRET
-      ? [
-          GitHubProvider({
-            clientId: process.env.GITHUB_ID,
-            clientSecret: process.env.GITHUB_SECRET,
-          }),
-        ]
-      : []),
-  ],
+  const {
+    data: { session },
+    error,
+  } = await supabase.auth.getSession();
 
-  session: {
-    strategy: 'jwt',
-    maxAge: 30 * 24 * 60 * 60, // 30 days
-  },
+  if (error) {
+    console.error('获取 session 失败:', error);
+    return null;
+  }
 
-  pages: {
-    signIn: '/login',
-    error: '/login',
-  },
+  return session;
+}
 
-  callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-      }
-      return token;
-    },
-    
-    async session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.id;
-      }
-      return session;
-    },
-  },
+/**
+ * 要求认证（用于保护路由）
+ * 如果未登录则抛出错误
+ */
+export async function requireAuth(): Promise<User> {
+  const user = await getCurrentUser();
 
-  secret: process.env.NEXTAUTH_SECRET,
-  
-  debug: process.env.NODE_ENV === 'development',
-};
+  if (!user) {
+    throw new Error('未授权访问');
+  }
 
+  return user;
+}
+
+/**
+ * 获取用户设置
+ */
+export async function getUserSettings(userId: string) {
+  const supabase = await createServerClient();
+
+  const { data, error } = await supabase
+    .from('user_settings')
+    .select('*')
+    .eq('user_id', userId)
+    .single();
+
+  if (error) {
+    console.error('获取用户设置失败:', error);
+    return null;
+  }
+
+  return data;
+}
