@@ -192,6 +192,10 @@ async function seed() {
     }
 
     const user = users.users[0];
+    if (!user) {
+      console.error('未找到用户');
+      process.exit(1);
+    }
     console.log(`✅ 找到用户: ${user.email} (ID: ${user.id})\n`);
 
     // 2. 检查是否已有数据

@@ -98,10 +98,9 @@ export async function POST(request: NextRequest) {
       metadata: metadata as any,
     };
 
-    // @ts-ignore - Supabase 类型推断问题
     const result = await supabase
       .from('attack_tests')
-      .insert(insertData)
+      .insert(insertData as any)
       .select()
       .single();
 
