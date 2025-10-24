@@ -4,12 +4,18 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRequireAuth } from '@/hooks/useAuth';
-import { useAttackTest } from '@/hooks/useAttackTest';
+import { useState } from 'react';
+
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { useAttackTest } from '@/hooks/useAttackTest';
+import { useRequireAuth } from '@/hooks/useAuth';
 import type { AttackType, DefenseLevel } from '@/types/supabase';
 
 export default function DashboardPage() {
@@ -54,13 +60,11 @@ export default function DashboardPage() {
         <div className="container mx-auto flex items-center justify-between px-4 py-4">
           <h1 className="text-2xl font-bold">Prompt Attack Dashboard</h1>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-600">
-              {user.email}
-            </span>
+            <span className="text-sm text-gray-600">{user.email}</span>
             <Button
               variant="outline"
               size="sm"
-              onClick={() => window.location.href = '/api/auth/logout'}
+              onClick={() => (window.location.href = '/api/auth/logout')}
             >
               登出
             </Button>
@@ -90,7 +94,9 @@ export default function DashboardPage() {
                   <label className="text-sm font-medium">攻击类型</label>
                   <select
                     value={attackType}
-                    onChange={(e) => setAttackType(e.target.value as AttackType)}
+                    onChange={(e) =>
+                      setAttackType(e.target.value as AttackType)
+                    }
                     className="w-full rounded-md border border-gray-300 p-2"
                   >
                     <option value="PROMPT_INJECTION">提示词注入</option>
@@ -105,7 +111,9 @@ export default function DashboardPage() {
                   <label className="text-sm font-medium">防御级别</label>
                   <select
                     value={defenseLevel}
-                    onChange={(e) => setDefenseLevel(e.target.value as DefenseLevel)}
+                    onChange={(e) =>
+                      setDefenseLevel(e.target.value as DefenseLevel)
+                    }
                     className="w-full rounded-md border border-gray-300 p-2"
                   >
                     <option value="NONE">无防御</option>

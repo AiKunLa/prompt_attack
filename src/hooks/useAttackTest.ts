@@ -5,6 +5,7 @@
 'use client';
 
 import { useState } from 'react';
+
 import { useStore } from '@/lib/store';
 import type { AttackType, DefenseLevel } from '@/types/supabase';
 
@@ -28,7 +29,9 @@ export function useAttackTest() {
 
   const { addTest, setCurrentTest } = useStore();
 
-  const runTest = async (params: AttackTestParams): Promise<AttackTestResult | null> => {
+  const runTest = async (
+    params: AttackTestParams
+  ): Promise<AttackTestResult | null> => {
     setLoading(true);
     setError(null);
 
@@ -38,6 +41,7 @@ export function useAttackTest() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // 携带 cookies
         body: JSON.stringify({
           attack_type: params.attackType,
           defense_level: params.defenseLevel,
@@ -80,7 +84,12 @@ export function useAttackTest() {
     setError(null);
 
     try {
-      const response = await fetch(`/api/attack-test?page=${page}&limit=${limit}`);
+      const response = await fetch(
+        `/api/attack-test?page=${page}&limit=${limit}`,
+        {
+          credentials: 'include', // 携带 cookies
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json();

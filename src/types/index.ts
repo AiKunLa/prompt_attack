@@ -1,4 +1,4 @@
-import { AttackType, DefenseLevel } from '@prisma/client';
+import type { AttackType, DefenseLevel } from './supabase';
 
 /**
  * API Response types
@@ -116,4 +116,3 @@ export interface RegisterFormData {
 export type Nullable<T> = T | null;
 export type Optional<T> = T | undefined;
 export type AsyncFn<T = void> = () => Promise<T>;
-

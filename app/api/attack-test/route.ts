@@ -4,9 +4,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@/lib/supabase';
-import { requireAuth } from '@/lib/auth';
 import { z } from 'zod';
+
+import { requireAuth } from '@/lib/auth';
+import { createServerClient } from '@/lib/supabase';
+import type { Database } from '@/types/database.types';
 import type { AttackType, DefenseLevel } from '@/types/supabase';
 
 // 验证 schema
@@ -84,22 +86,27 @@ export async function POST(request: NextRequest) {
     const supabase = await createServerClient();
 
     // 保存测试记录到数据库
-    const { data, error } = await supabase
+    type AttackTestInsert =
+      Database['public']['Tables']['attack_tests']['Insert'];
+    const insertData: AttackTestInsert = {
+      user_id: user.id,
+      attack_type,
+      defense_level,
+      input_text,
+      output_text: output,
+      is_blocked: isBlocked,
+      metadata: metadata as any,
+    };
+
+    // @ts-ignore - Supabase 类型推断问题
+    const result = await supabase
       .from('attack_tests')
-      .insert({
-        user_id: user.id,
-        attack_type,
-        defense_level,
-        input_text,
-        output_text: output,
-        is_blocked: isBlocked,
-        metadata: metadata as any,
-      })
+      .insert(insertData)
       .select()
       .single();
 
-    if (error) {
-      console.error('保存测试记录失败:', error);
+    if (result.error || !result.data) {
+      console.error('保存测试记录失败:', result.error);
       return NextResponse.json(
         {
           error: '保存测试记录失败',
@@ -107,6 +114,10 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
+
+    type AttackTestRow = Database['public']['Tables']['attack_tests']['Row'];
+    // @ts-ignore - Supabase 类型推断问题
+    const data = result.data as AttackTestRow;
 
     return NextResponse.json(
       {

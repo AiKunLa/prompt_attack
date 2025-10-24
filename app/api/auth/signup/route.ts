@@ -4,8 +4,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@/lib/supabase';
 import { z } from 'zod';
+
+import { createServerClient } from '@/lib/supabase';
 
 // 注册验证 schema
 const signupSchema = z.object({
@@ -88,4 +89,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

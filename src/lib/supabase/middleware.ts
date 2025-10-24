@@ -5,6 +5,7 @@
 
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+
 import type { Database } from '@/types/database.types';
 
 export async function updateSession(request: NextRequest) {
@@ -31,11 +32,8 @@ export async function updateSession(request: NextRequest) {
   );
 
   // 刷新 session（如果过期会自动续期）
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  await supabase.auth.getUser();
 
   // 返回更新后的 response
   return response;
 }
-

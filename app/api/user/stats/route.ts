@@ -4,8 +4,10 @@
  */
 
 import { NextResponse } from 'next/server';
-import { createServerClient } from '@/lib/supabase';
+
 import { requireAuth } from '@/lib/auth';
+import { createServerClient } from '@/lib/supabase';
+import type { Database } from '@/types/database.types';
 
 export async function GET() {
   try {
@@ -14,15 +16,15 @@ export async function GET() {
     const supabase = await createServerClient();
 
     // 从视图获取统计数据
-    const { data, error } = await supabase
+    // @ts-ignore - Supabase 类型推断问题
+    const result = await supabase
       .from('user_attack_stats')
       .select('*')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
-    if (error && error.code !== 'PGRST116') {
-      // PGRST116 表示没有找到记录，这是正常的
-      console.error('获取统计数据失败:', error);
+    if (result.error) {
+      console.error('获取统计数据失败:', result.error);
       return NextResponse.json(
         {
           error: '获取统计数据失败',
@@ -32,7 +34,7 @@ export async function GET() {
     }
 
     // 如果没有数据，返回默认值
-    if (!data) {
+    if (!result.data) {
       return NextResponse.json({
         total_tests: 0,
         blocked_count: 0,
@@ -47,6 +49,9 @@ export async function GET() {
         last_test_at: null,
       });
     }
+
+    type UserStatsRow = Database['public']['Views']['user_attack_stats']['Row'];
+    const data = result.data as UserStatsRow;
 
     return NextResponse.json({
       total_tests: data.total_tests || 0,
@@ -81,4 +86,3 @@ export async function GET() {
     );
   }
 }
-

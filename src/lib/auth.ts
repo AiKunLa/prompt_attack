@@ -2,8 +2,9 @@
  * Supabase 认证辅助函数
  */
 
-import { createServerClient } from './supabase';
 import type { User } from '@/types/supabase';
+
+import { createServerClient } from './supabase';
 
 /**
  * 获取当前登录用户（服务端）

@@ -3,6 +3,7 @@
  */
 
 import type { User as SupabaseUser } from '@supabase/supabase-js';
+
 import type { Database } from './database.types';
 
 // 导出常用类型

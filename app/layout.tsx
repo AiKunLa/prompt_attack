@@ -8,7 +8,8 @@ const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'Prompt Attack - Defense Demo',
-  description: 'Interactive demonstration of prompt attacks and defense mechanisms',
+  description:
+    'Interactive demonstration of prompt attacks and defense mechanisms',
   keywords: ['AI', 'Security', 'Prompt Engineering', 'LLM', 'Defense'],
 };
 
@@ -25,4 +26,3 @@ export default function RootLayout({
     </html>
   );
 }
-
